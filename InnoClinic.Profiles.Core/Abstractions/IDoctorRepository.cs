@@ -7,5 +7,6 @@ namespace InnoClinic.Profiles.DataAccess.Repositories
     {
         Task<IEnumerable<DoctorModel>> GetAllAsync();
         Task<IEnumerable<DoctorModel>> GetAllAtWorkAsync();
+        Task<DoctorModel> GetByIdAsync(Guid id);
     }
 }

@@ -1,5 +1,7 @@
-﻿using InnoClinic.Profiles.Core.Models;
+﻿using InnoClinic.Profiles.Core.Exceptions;
+using InnoClinic.Profiles.Core.Models;
 using InnoClinic.Profiles.DataAccess.Context;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace InnoClinic.Profiles.DataAccess.Repositories
@@ -30,6 +32,13 @@ namespace InnoClinic.Profiles.DataAccess.Repositories
                 .Include(d => d.Specialization)
                 .Include(d => d.Office)
                 .ToListAsync();
+        }
+
+        public async Task<DoctorModel> GetByIdAsync(Guid id)
+        {
+            return await _context.Doctors
+                .FirstOrDefaultAsync(d => d.Id.Equals(id))
+                ?? throw new DataRepositoryException($"Doctor with Id '{id}' not found.", StatusCodes.Status404NotFound); ;
         }
     }
 }

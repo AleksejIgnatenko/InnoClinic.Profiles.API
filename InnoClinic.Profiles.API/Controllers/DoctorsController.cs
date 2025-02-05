@@ -16,7 +16,7 @@ namespace InnoClinic.Profiles.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateDictorAsync(DoctorRequest doctorRequest)
+        public async Task<ActionResult> CreateDoctorAsync(DoctorRequest doctorRequest)
         {
             await _doctorService.CreateDoctorAsync(doctorRequest.FirstName, doctorRequest.LastName, doctorRequest.MiddleName, 
                 doctorRequest.CabinetNumber, doctorRequest.DateOfBirth, doctorRequest.AccountId, doctorRequest.SpecializationId,
@@ -36,6 +36,24 @@ namespace InnoClinic.Profiles.API.Controllers
         public async Task<ActionResult> GetAllDoctorsAtWorkAsync()
         {
             return Ok(await _doctorService.GetAllDoctorsAtWorkAsync());
+        }
+
+        [HttpPut("{id:guid}")]
+        public async Task<ActionResult> UpdateDoctorAsync(Guid id, DoctorRequest doctorRequest)
+        {
+            await _doctorService.UpdateDoctorAsync(id, doctorRequest.FirstName, doctorRequest.LastName, doctorRequest.MiddleName,
+                doctorRequest.CabinetNumber, doctorRequest.DateOfBirth, doctorRequest.AccountId, doctorRequest.SpecializationId,
+                doctorRequest.OfficeId, doctorRequest.CareerStartYear, doctorRequest.Status);
+
+            return Ok();
+        }
+
+        [HttpDelete("{id:guid}")]
+        public async Task<ActionResult> DeleteDoctorAsync(Guid id)
+        {
+            await _doctorService.DeleteDoctorAsync(id);
+
+            return Ok();
         }
     }
 }
