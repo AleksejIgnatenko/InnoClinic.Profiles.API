@@ -15,5 +15,22 @@ namespace InnoClinic.Profiles.DataAccess.Repositories
                 .FirstOrDefaultAsync(s => s.Id == id)
                 ?? throw new DataRepositoryException("Specialization not found", 404);
         }
+
+        public override async Task UpdateAsync(SpecializationModel entity)
+        {
+            await _context.Specializations
+                .Where(s => s.Id.Equals(entity.Id))
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(s => s.SpecializationName, entity.SpecializationName)
+                    .SetProperty(s => s.IsActive, entity.IsActive)
+                );
+        }
+
+        public override async Task DeleteAsync(SpecializationModel entity)
+        {
+            await _context.Specializations
+                .Where(o => o.Id.Equals(entity.Id))
+                .ExecuteDeleteAsync();
+        }
     }
 }

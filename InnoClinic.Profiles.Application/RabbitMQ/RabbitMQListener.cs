@@ -26,12 +26,15 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
         public RabbitMQListener(IOptions<RabbitMQSetting> rabbitMqSetting, IMapper mapper, IOfficeRepository officeRepository, IAccountRepository accountRepository, ISpecializationRepository specializationRepository)
         {
             _rabbitMqSetting = rabbitMqSetting.Value;
-            var factory = new ConnectionFactory { HostName = _rabbitMqSetting.HostName };
+            var factory = new ConnectionFactory
+            {
+                HostName = _rabbitMqSetting.HostName,
+                UserName = _rabbitMqSetting.UserName,
+                Password = _rabbitMqSetting.Password
+            };
+
             _connection = factory.CreateConnection();
             _channel = _connection.CreateModel();
-
-            _channel.QueueDeclare(queue: RabbitMQQueues.ADD_ACCOUNT_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
-            _channel.QueueDeclare(queue: RabbitMQQueues.ADD_OFFICE_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
 
             _mapper = mapper;
             _officeRepository = officeRepository;
@@ -43,6 +46,7 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
         {
             stoppingToken.ThrowIfCancellationRequested();
 
+            #region account
             var addAccountConsumer = new EventingBasicConsumer(_channel);
             addAccountConsumer.Received += async (ch, ea) =>
             {
@@ -57,6 +61,36 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
             };
             _channel.BasicConsume(RabbitMQQueues.ADD_ACCOUNT_QUEUE, false, addAccountConsumer);
 
+            var updateAccountConsumer = new EventingBasicConsumer(_channel);
+            updateAccountConsumer.Received += async (ch, ea) =>
+            {
+                var content = Encoding.UTF8.GetString(ea.Body.ToArray());
+
+                var accountDto = JsonConvert.DeserializeObject<AccountDto>(content);
+                var account = _mapper.Map<AccountModel>(accountDto);
+
+                await _accountRepository.UpdateAsync(account);
+
+                _channel.BasicAck(ea.DeliveryTag, false);
+            };
+            _channel.BasicConsume(RabbitMQQueues.UPDATE_ACCOUNT_QUEUE, false, updateAccountConsumer);
+
+            var deleteAccountConsumer = new EventingBasicConsumer(_channel);
+            deleteAccountConsumer.Received += async (ch, ea) =>
+            {
+                var content = Encoding.UTF8.GetString(ea.Body.ToArray());
+
+                var accountDto = JsonConvert.DeserializeObject<AccountDto>(content);
+                var account = _mapper.Map<AccountModel>(accountDto);
+
+                await _accountRepository.DeleteAsync(account);
+
+                _channel.BasicAck(ea.DeliveryTag, false);
+            };
+            _channel.BasicConsume(RabbitMQQueues.DELETE_ACCOUNT_QUEUE, false, deleteAccountConsumer);
+            #endregion
+
+            #region office
             var addOfficeConsumer = new EventingBasicConsumer(_channel);
             addOfficeConsumer.Received += async (ch, ea) =>
             {
@@ -71,6 +105,36 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
             };
             _channel.BasicConsume(RabbitMQQueues.ADD_OFFICE_QUEUE, false, addOfficeConsumer);
 
+            var updateOfficeConsumer = new EventingBasicConsumer(_channel);
+            updateOfficeConsumer.Received += async (ch, ea) =>
+            {
+                var content = Encoding.UTF8.GetString(ea.Body.ToArray());
+
+                var officeDto = JsonConvert.DeserializeObject<OfficeDto>(content);
+                var office = _mapper.Map<OfficeModel>(officeDto);
+
+                await _officeRepository.UpdateAsync(office);
+
+                _channel.BasicAck(ea.DeliveryTag, false);
+            };
+            _channel.BasicConsume(RabbitMQQueues.UPDATE_OFFICE_QUEUE, false, updateOfficeConsumer);
+
+            var deleteOfficeConsumer = new EventingBasicConsumer(_channel);
+            deleteOfficeConsumer.Received += async (ch, ea) =>
+            {
+                var content = Encoding.UTF8.GetString(ea.Body.ToArray());
+
+                var officeDto = JsonConvert.DeserializeObject<OfficeDto>(content);
+                var office = _mapper.Map<OfficeModel>(officeDto);
+
+                await _officeRepository.DeleteAsync(office);
+
+                _channel.BasicAck(ea.DeliveryTag, false);
+            };
+            _channel.BasicConsume(RabbitMQQueues.DELETE_OFFICE_QUEUE, false, deleteOfficeConsumer);
+            #endregion
+
+            #region specialization
             var addSpecializationConsumer = new EventingBasicConsumer(_channel);
             addSpecializationConsumer.Received += async (ch, ea) =>
             {
@@ -85,6 +149,37 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
                 _channel.BasicAck(ea.DeliveryTag, false);
             };
             _channel.BasicConsume(RabbitMQQueues.ADD_SPECIALIZATION_QUEUE, false, addSpecializationConsumer);
+
+            var updateSpecializationConsumer = new EventingBasicConsumer(_channel);
+            updateSpecializationConsumer.Received += async (ch, ea) =>
+            {
+                var content = Encoding.UTF8.GetString(ea.Body.ToArray());
+                Console.WriteLine(content);
+
+                var specializationDto = JsonConvert.DeserializeObject<SpecializationDto>(content);
+                var specialization = _mapper.Map<SpecializationModel>(specializationDto);
+
+                await _specializationRepository.UpdateAsync(specialization);
+
+                _channel.BasicAck(ea.DeliveryTag, false);
+            };
+            _channel.BasicConsume(RabbitMQQueues.UPDATE_SPECIALIZATION_QUEUE, false, updateSpecializationConsumer);
+
+            var deleteSpecializationConsumer = new EventingBasicConsumer(_channel);
+            deleteSpecializationConsumer.Received += async (ch, ea) =>
+            {
+                var content = Encoding.UTF8.GetString(ea.Body.ToArray());
+                Console.WriteLine(content);
+
+                var specializationDto = JsonConvert.DeserializeObject<SpecializationDto>(content);
+                var specialization = _mapper.Map<SpecializationModel>(specializationDto);
+
+                await _specializationRepository.DeleteAsync(specialization);
+
+                _channel.BasicAck(ea.DeliveryTag, false);
+            };
+            _channel.BasicConsume(RabbitMQQueues.DELETE_SPECIALIZATION_QUEUE, false, deleteSpecializationConsumer);
+            #endregion
 
             return Task.CompletedTask;
         }

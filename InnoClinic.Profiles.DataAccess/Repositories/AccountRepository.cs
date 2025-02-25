@@ -17,7 +17,25 @@ namespace InnoClinic.Profiles.DataAccess.Repositories
         {
             return await _context.Accounts
                 .FirstOrDefaultAsync(a => a.Id == id)
-                ?? throw new DataRepositoryException("Office not found", 404);
+                ?? throw new DataRepositoryException("Account not found", 404);
+        }
+
+        public override async Task UpdateAsync(AccountModel entity)
+        {
+            await _context.Accounts
+                .Where(a => a.Id.Equals(entity.Id))
+                .ExecuteUpdateAsync(a => a
+                    .SetProperty(a => a.Email, entity.Email)
+                    .SetProperty(a => a.PhoneNumber, entity.PhoneNumber)
+                    .SetProperty(a => a.PhotoId, entity.PhotoId)
+                );
+        }
+
+        public override async Task DeleteAsync(AccountModel entity)
+        {
+            await _context.Accounts
+                .Where(a => a.Id.Equals(entity.Id))
+                .ExecuteDeleteAsync();
         }
     }
 }

@@ -1,5 +1,4 @@
 using System.Text;
-using Confluent.Kafka;
 using InnoClinic.Profiles.API.Middlewares;
 using InnoClinic.Profiles.Application.MapperProfiles;
 using InnoClinic.Profiles.Application.RabbitMQ;
@@ -45,8 +44,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 {
     options.TokenValidationParameters = new()
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions?.SecretKey))
@@ -58,12 +57,25 @@ builder.Services.AddScoped<IAccountRepository, AccountRepository>();
 builder.Services.AddScoped<IOfficeRepository, OfficeRepository>();
 builder.Services.AddScoped<IDoctorService, DoctorService>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+builder.Services.AddScoped<IPatientService, PatientService>();
+builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+builder.Services.AddScoped<IValidationService, ValidationService>();
+builder.Services.AddScoped<IRabbitMQService, RabbitMQService>();
 
 builder.Services.AddHostedService<RabbitMQListener>();
 
 builder.Services.AddAutoMapper(typeof(MapperProfiles));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var rabbitMQService = services.GetRequiredService<IRabbitMQService>();
+    await rabbitMQService.CreateQueuesAsync();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -83,11 +95,10 @@ app.MapControllers();
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-app.UseCors(x =>
-{
-    x.WithHeaders().AllowAnyHeader();
-    x.WithOrigins("http://localhost:4000");
-    x.WithMethods().AllowAnyMethod();
-});
+app.UseCors(policy => policy
+    .WithOrigins("http://localhost:4000") // Разрешенный источник запросов
+    .AllowAnyMethod() // Разрешить любые HTTP методы
+    .AllowAnyHeader() // Разрешить любые заголовки HTTP
+);
 
 app.Run();
