@@ -30,9 +30,16 @@ namespace InnoClinic.Profiles.Application.Services
             {
                 await Task.Run(() =>
                 {
+                    channel.QueueDeclare(RabbitMQQueues.ADD_ACCOUNT_IN_PROFILE_API_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
+                    channel.QueueDeclare(RabbitMQQueues.UPDATE_ACCOUNT_PHONE_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
+
                     channel.QueueDeclare(RabbitMQQueues.ADD_DOCTOR_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
                     channel.QueueDeclare(RabbitMQQueues.UPDATE_DOCTOR_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
                     channel.QueueDeclare(RabbitMQQueues.DELETE_DOCTOR_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
+
+                    channel.QueueDeclare(RabbitMQQueues.ADD_RECEPTIONIST_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
+                    channel.QueueDeclare(RabbitMQQueues.UPDATE_RECEPTIONIST_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
+                    channel.QueueDeclare(RabbitMQQueues.DELETE_RECEPTIONIST_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
 
                     channel.QueueDeclare(RabbitMQQueues.ADD_PATIENT_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);
                     channel.QueueDeclare(RabbitMQQueues.UPDATE_PATIENT_QUEUE, durable: false, exclusive: false, autoDelete: false, arguments: null);

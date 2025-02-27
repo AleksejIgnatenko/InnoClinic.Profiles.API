@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using InnoClinic.Profiles.Core.Abstractions;
-using InnoClinic.Profiles.Core.Dto;
 using InnoClinic.Profiles.Core.Exceptions;
-using InnoClinic.Profiles.Core.Models;
+using InnoClinic.Profiles.Core.Models.AccountModels;
+using InnoClinic.Profiles.Core.Models.PatientModels;
 using InnoClinic.Profiles.DataAccess.Repositories;
 using InnoClinic.Profiles.Infrastructure.RabbitMQ;
 
@@ -34,7 +34,7 @@ namespace InnoClinic.Profiles.Application.Services
             var account = await _accountRepository.GetByIdAsync(accountId);
             account.PhoneNumber = phoneNumber;
 
-            var patient = new PatientModel
+            var patient = new PatientEntity
             {
                 Id = Guid.NewGuid(),
                 FirstName = firstName,
@@ -70,7 +70,7 @@ namespace InnoClinic.Profiles.Application.Services
             await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.ADD_PATIENT_QUEUE);
 
             var accountDto = _mapper.Map<AccountDto>(account);
-            await _rabbitMQService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_QUEUE);
+            await _rabbitMQService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_PHONE_QUEUE);
         }
 
         public async Task ForceCreatePatientAsync(string firstName, string lastName, string middleName, string phoneNumber,
@@ -80,7 +80,7 @@ namespace InnoClinic.Profiles.Application.Services
             var account = await _accountRepository.GetByIdAsync(accountId);
             account.PhoneNumber = phoneNumber;
 
-            var patient = new PatientModel
+            var patient = new PatientEntity
             {
                 Id = Guid.NewGuid(),
                 FirstName = firstName,
@@ -112,9 +112,20 @@ namespace InnoClinic.Profiles.Application.Services
             await _rabbitMQService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_QUEUE);
         }
 
-        public async Task<IEnumerable<PatientModel>> GetAllPatientsAsync()
+        public async Task<IEnumerable<PatientEntity>> GetAllPatientsAsync()
         {
             return await _patientRepository.GetAllAsync();
+        }
+
+        public async Task<PatientEntity> GetPatientByAccountIdFromTokenAsync(string token)
+        {
+            var accountId = _jwtTokenService.GetAccountIdFromAccessToken(token);
+            return await _patientRepository.GetByAccountId(accountId);
+        }
+
+        public async Task<PatientEntity> GetPatientByIdAsync(Guid patientId)
+        {
+            return await _patientRepository.GetByIdAsync(patientId);
         }
 
         public async Task UpdatePatientAsync(Guid id, string firstName, string lastName, string middleName, bool isLinkedToAccount,
@@ -122,7 +133,7 @@ namespace InnoClinic.Profiles.Application.Services
         {
             var account = await _accountRepository.GetByIdAsync(accountId);
 
-            var patient = new PatientModel
+            var patient = new PatientEntity
             {
                 Id = id,
                 FirstName = firstName,
@@ -165,7 +176,7 @@ namespace InnoClinic.Profiles.Application.Services
             await _patientRepository.DeleteAsync(patient);
 
             var patientDto = _mapper.Map<PatientDto>(patient);
-            await _rabbitMQService.PublishMessageAsync(patient, RabbitMQQueues.DELETE_PATIENT_QUEUE);
+            await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.DELETE_PATIENT_QUEUE);
         }
     }
 }

@@ -1,8 +1,10 @@
 ﻿using System.Text;
 using AutoMapper;
+using InnoClinic.Profiles.Application.Services;
 using InnoClinic.Profiles.Core.Abstractions;
-using InnoClinic.Profiles.Core.Dto;
-using InnoClinic.Profiles.Core.Models;
+using InnoClinic.Profiles.Core.Models.AccountModels;
+using InnoClinic.Profiles.Core.Models.OfficeModels;
+using InnoClinic.Profiles.Core.Models.SpecializationModels;
 using InnoClinic.Profiles.DataAccess.Repositories;
 using InnoClinic.Profiles.Infrastructure.RabbitMQ;
 using Microsoft.Extensions.Hosting;
@@ -21,9 +23,10 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
         private readonly IMapper _mapper;
         private readonly IAccountRepository _accountRepository;
         private readonly IOfficeRepository _officeRepository;
+        private readonly IOfficeService _officeService;
         private readonly ISpecializationRepository _specializationRepository;
 
-        public RabbitMQListener(IOptions<RabbitMQSetting> rabbitMqSetting, IMapper mapper, IOfficeRepository officeRepository, IAccountRepository accountRepository, ISpecializationRepository specializationRepository)
+        public RabbitMQListener(IOptions<RabbitMQSetting> rabbitMqSetting, IMapper mapper, IAccountRepository accountRepository, ISpecializationRepository specializationRepository, IOfficeService officeService, IOfficeRepository officeRepository)
         {
             _rabbitMqSetting = rabbitMqSetting.Value;
             var factory = new ConnectionFactory
@@ -37,9 +40,10 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
             _channel = _connection.CreateModel();
 
             _mapper = mapper;
-            _officeRepository = officeRepository;
             _accountRepository = accountRepository;
             _specializationRepository = specializationRepository;
+            _officeService = officeService;
+            _officeRepository = officeRepository;
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -53,7 +57,7 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
                 var content = Encoding.UTF8.GetString(ea.Body.ToArray());
 
                 var accountDto = JsonConvert.DeserializeObject<AccountDto>(content);
-                var account = _mapper.Map<AccountModel>(accountDto);
+                var account = _mapper.Map<AccountEntity>(accountDto);
 
                 await _accountRepository.CreateAsync(account);
 
@@ -67,7 +71,7 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
                 var content = Encoding.UTF8.GetString(ea.Body.ToArray());
 
                 var accountDto = JsonConvert.DeserializeObject<AccountDto>(content);
-                var account = _mapper.Map<AccountModel>(accountDto);
+                var account = _mapper.Map<AccountEntity>(accountDto);
 
                 await _accountRepository.UpdateAsync(account);
 
@@ -81,7 +85,7 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
                 var content = Encoding.UTF8.GetString(ea.Body.ToArray());
 
                 var accountDto = JsonConvert.DeserializeObject<AccountDto>(content);
-                var account = _mapper.Map<AccountModel>(accountDto);
+                var account = _mapper.Map<AccountEntity>(accountDto);
 
                 await _accountRepository.DeleteAsync(account);
 
@@ -97,7 +101,7 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
                 var content = Encoding.UTF8.GetString(ea.Body.ToArray());
 
                 var officeDto = JsonConvert.DeserializeObject<OfficeDto>(content);
-                var office = _mapper.Map<OfficeModel>(officeDto);
+                var office = _mapper.Map<OfficeEntity>(officeDto);
 
                 await _officeRepository.CreateAsync(office);
 
@@ -111,9 +115,9 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
                 var content = Encoding.UTF8.GetString(ea.Body.ToArray());
 
                 var officeDto = JsonConvert.DeserializeObject<OfficeDto>(content);
-                var office = _mapper.Map<OfficeModel>(officeDto);
+                var office = _mapper.Map<OfficeEntity>(officeDto);
 
-                await _officeRepository.UpdateAsync(office);
+                await _officeService.UpdateOfficeAsync(office);
 
                 _channel.BasicAck(ea.DeliveryTag, false);
             };
@@ -125,7 +129,7 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
                 var content = Encoding.UTF8.GetString(ea.Body.ToArray());
 
                 var officeDto = JsonConvert.DeserializeObject<OfficeDto>(content);
-                var office = _mapper.Map<OfficeModel>(officeDto);
+                var office = _mapper.Map<OfficeEntity>(officeDto);
 
                 await _officeRepository.DeleteAsync(office);
 
@@ -142,7 +146,7 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
                 Console.WriteLine(content);
 
                 var specializationDto = JsonConvert.DeserializeObject<SpecializationDto>(content);
-                var specialization = _mapper.Map<SpecializationModel>(specializationDto);
+                var specialization = _mapper.Map<SpecializationEntity>(specializationDto);
 
                 await _specializationRepository.CreateAsync(specialization);
 
@@ -157,7 +161,7 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
                 Console.WriteLine(content);
 
                 var specializationDto = JsonConvert.DeserializeObject<SpecializationDto>(content);
-                var specialization = _mapper.Map<SpecializationModel>(specializationDto);
+                var specialization = _mapper.Map<SpecializationEntity>(specializationDto);
 
                 await _specializationRepository.UpdateAsync(specialization);
 
@@ -172,7 +176,7 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
                 Console.WriteLine(content);
 
                 var specializationDto = JsonConvert.DeserializeObject<SpecializationDto>(content);
-                var specialization = _mapper.Map<SpecializationModel>(specializationDto);
+                var specialization = _mapper.Map<SpecializationEntity>(specializationDto);
 
                 await _specializationRepository.DeleteAsync(specialization);
 

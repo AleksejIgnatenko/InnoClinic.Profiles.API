@@ -1,9 +1,9 @@
 ﻿using FluentValidation;
-using InnoClinic.Profiles.Core.Models;
+using InnoClinic.Profiles.Core.Models.AccountModels;
 
 namespace InnoClinic.Profiles.Application.Validators
 {
-    internal class AccountValidator : AbstractValidator<AccountModel>
+    internal class AccountValidator : AbstractValidator<AccountEntity>
     {
         public AccountValidator()
         {

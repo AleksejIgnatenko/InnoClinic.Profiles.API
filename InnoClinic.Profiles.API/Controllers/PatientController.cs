@@ -1,8 +1,8 @@
-﻿using InnoClinic.Profiles.API.Contracts;
-using InnoClinic.Profiles.Application.Services;
+﻿using InnoClinic.Profiles.Application.Services;
+using InnoClinic.Profiles.Core.Models.AccountModels;
+using InnoClinic.Profiles.Core.Models.PatientModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace InnoClinic.Profiles.API.Controllers
 {
@@ -45,6 +45,26 @@ namespace InnoClinic.Profiles.API.Controllers
         public async Task<ActionResult> GetAllPatientsAsync()
         {
             return Ok(await _patientService.GetAllPatientsAsync());
+        }
+
+        [Authorize]
+        [HttpGet("{patientId:guid}")]
+        public async Task<ActionResult> GetPatientByIdAsync(Guid patientId)
+        {
+            var patient = await _patientService.GetPatientByIdAsync(patientId);
+            if (patient == null)
+            {
+                return NotFound();
+            }
+            return Ok(patient);
+        }
+
+        [Authorize]
+        [HttpGet("patient-by-account-id-from-token")]
+        public async Task<ActionResult> GetPatientByAccountIdFromTokenAsync()
+        {
+            var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
+            return Ok(await _patientService.GetPatientByAccountIdFromTokenAsync(token));
         }
 
         [HttpPut("{id:guid}")]

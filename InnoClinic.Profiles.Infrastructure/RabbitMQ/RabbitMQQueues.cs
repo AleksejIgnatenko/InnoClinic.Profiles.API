@@ -3,7 +3,9 @@
     public class RabbitMQQueues
     {
         public const string ADD_ACCOUNT_QUEUE = "ADD_ACCOUNT_QUEUE";
+        public const string ADD_ACCOUNT_IN_PROFILE_API_QUEUE = "ADD_ACCOUNT_IN_PROFILE_API_QUEUE";
         public const string UPDATE_ACCOUNT_QUEUE = "UPDATE_ACCOUNT_QUEUE";
+        public const string UPDATE_ACCOUNT_PHONE_QUEUE = "UPDATE_ACCOUNT_PHONE_QUEUE";
         public const string DELETE_ACCOUNT_QUEUE = "DELETE_ACCOUNT_QUEUE";
 
         public const string ADD_OFFICE_QUEUE = "ADD_OFFICE_QUEUE";
@@ -21,5 +23,9 @@
         public const string ADD_PATIENT_QUEUE = "ADD_PATIENT_QUEUE";
         public const string UPDATE_PATIENT_QUEUE = "UPDATE_PATIENT_QUEUE";
         public const string DELETE_PATIENT_QUEUE = "DELETE_PATIENT_QUEUE";
+
+        public const string ADD_RECEPTIONIST_QUEUE = "ADD_RECEPTIONIST_QUEUE";
+        public const string UPDATE_RECEPTIONIST_QUEUE = "UPDATE_RECEPTIONIST_QUEUE";
+        public const string DELETE_RECEPTIONIST_QUEUE = "DELETE_RECEPTIONIST_QUEUE";
     }
 }

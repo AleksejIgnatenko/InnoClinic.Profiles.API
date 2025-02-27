@@ -1,22 +1,22 @@
 ﻿using InnoClinic.Profiles.Core.Exceptions;
-using InnoClinic.Profiles.Core.Models;
+using InnoClinic.Profiles.Core.Models.SpecializationModels;
 using InnoClinic.Profiles.DataAccess.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace InnoClinic.Profiles.DataAccess.Repositories
 {
-    public class SpecializationRepository : RepositoryBase<SpecializationModel>, ISpecializationRepository
+    public class SpecializationRepository : RepositoryBase<SpecializationEntity>, ISpecializationRepository
     {
         public SpecializationRepository(InnoClinicProfilesDbContext context) : base(context) { }
 
-        public async Task<SpecializationModel> GetByIdAsync(Guid id)
+        public async Task<SpecializationEntity> GetByIdAsync(Guid id)
         {
             return await _context.Specializations
                 .FirstOrDefaultAsync(s => s.Id == id)
                 ?? throw new DataRepositoryException("Specialization not found", 404);
         }
 
-        public override async Task UpdateAsync(SpecializationModel entity)
+        public override async Task UpdateAsync(SpecializationEntity entity)
         {
             await _context.Specializations
                 .Where(s => s.Id.Equals(entity.Id))
@@ -26,7 +26,7 @@ namespace InnoClinic.Profiles.DataAccess.Repositories
                 );
         }
 
-        public override async Task DeleteAsync(SpecializationModel entity)
+        public override async Task DeleteAsync(SpecializationEntity entity)
         {
             await _context.Specializations
                 .Where(o => o.Id.Equals(entity.Id))

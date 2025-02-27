@@ -1,12 +1,13 @@
 ﻿using InnoClinic.Profiles.Core.Abstractions;
-using InnoClinic.Profiles.Core.Models;
+using InnoClinic.Profiles.Core.Models.PatientModels;
 
 namespace InnoClinic.Profiles.DataAccess.Repositories
 {
-    public interface IPatientRepository : IRepositoryBase<PatientModel>
+    public interface IPatientRepository : IRepositoryBase<PatientEntity>
     {
-        Task<IEnumerable<PatientModel>> GetAllAsync();
-        Task<PatientModel> GetByIdAsync(Guid id);
-        Task<IEnumerable<PatientModel>> FindMatchingPatientsByCriteriaAsync(PatientModel patient);
+        Task<IEnumerable<PatientEntity>> GetAllAsync();
+        Task<PatientEntity> GetByIdAsync(Guid id);
+        Task<IEnumerable<PatientEntity>> FindMatchingPatientsByCriteriaAsync(PatientEntity patient);
+        Task<PatientEntity> GetByAccountId(Guid accountId);
     }
 }
