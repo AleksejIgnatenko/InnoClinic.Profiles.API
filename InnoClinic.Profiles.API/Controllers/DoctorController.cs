@@ -17,11 +17,11 @@ namespace InnoClinic.Profiles.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateDoctorAsync(CreateDoctorRequest doctorRequest)
+        public async Task<ActionResult> CreateDoctorAsync([FromBody] CreateDoctorRequest doctorRequest)
         {
             await _doctorService.CreateDoctorAsync(doctorRequest.FirstName, doctorRequest.LastName, doctorRequest.MiddleName, 
                 doctorRequest.CabinetNumber, doctorRequest.DateOfBirth, doctorRequest.Email, doctorRequest.SpecializationId,
-                doctorRequest.OfficeId, doctorRequest.CareerStartYear, doctorRequest.Status);
+                doctorRequest.OfficeId, doctorRequest.CareerStartYear, doctorRequest.Status, doctorRequest.PhotoId);
 
             return Ok();
         }
@@ -54,11 +54,11 @@ namespace InnoClinic.Profiles.API.Controllers
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult> UpdateDoctorAsync(Guid id, UpdateDoctorRequest doctorRequest)
+        public async Task<ActionResult> UpdateDoctorAsync(Guid id, [FromBody] UpdateDoctorRequest doctorRequest)
         {
             await _doctorService.UpdateDoctorAsync(id, doctorRequest.FirstName, doctorRequest.LastName, doctorRequest.MiddleName,
                 doctorRequest.CabinetNumber, doctorRequest.DateOfBirth, doctorRequest.SpecializationId,
-                doctorRequest.OfficeId, doctorRequest.CareerStartYear, doctorRequest.Status);
+                doctorRequest.OfficeId, doctorRequest.CareerStartYear, doctorRequest.Status, doctorRequest.PhotoId);
 
             return Ok();
         }

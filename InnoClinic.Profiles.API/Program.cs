@@ -86,6 +86,12 @@ app.MapControllers();
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 
-app.UseCors("CorsPolicy");
+app.UseCors(x =>
+{
+    x.WithHeaders().AllowAnyHeader();
+    x.WithOrigins("http://localhost:4000", "http://localhost:4001");
+    x.WithMethods().AllowAnyMethod();
+    x.AllowCredentials();
+});
 
 app.Run();

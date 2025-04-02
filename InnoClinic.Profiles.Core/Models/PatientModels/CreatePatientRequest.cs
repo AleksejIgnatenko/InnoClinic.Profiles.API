@@ -6,6 +6,7 @@
             string MiddleName,
             string PhoneNumber,
             bool IsLinkedToAccount,
-            string DateOfBirth
+            string DateOfBirth,
+            string? PhotoId
             );
 }

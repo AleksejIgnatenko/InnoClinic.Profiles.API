@@ -1,9 +1,11 @@
 ﻿using AutoMapper;
 using InnoClinic.Profiles.Core.Abstractions;
 using InnoClinic.Profiles.Core.Exceptions;
+using InnoClinic.Profiles.Core.Models.AccountModels;
 using InnoClinic.Profiles.Core.Models.ReceptionistModels;
 using InnoClinic.Profiles.DataAccess.Repositories;
 using InnoClinic.Profiles.Infrastructure.RabbitMQ;
+using System.Numerics;
 
 namespace InnoClinic.Profiles.Application.Services
 {
@@ -30,9 +32,9 @@ namespace InnoClinic.Profiles.Application.Services
             _rabbitMQService = rabbitMQService;
         }
 
-        public async Task CreateReceptionistAsync(string firstName, string lastName, string middleName, string email, string status, Guid officeId)
+        public async Task CreateReceptionistAsync(string firstName, string lastName, string middleName, string email, string status, Guid officeId, string photoId)
         {
-            var accountId = await _accountService.CreateAccountAsync(email, firstName + " " + lastName, Core.Enums.RoleEnum.Receptionist);
+            var accountId = await _accountService.CreateAccountAsync(email, firstName + " " + lastName, Core.Enums.RoleEnum.Receptionist, photoId);
 
             var office = await _officeRepository.GetByIdAsync(officeId);
             var account = await _accountRepository.GetByIdAsync(accountId);
@@ -58,7 +60,10 @@ namespace InnoClinic.Profiles.Application.Services
             await _receptionistRepository.CreateAsync(receptionist);
 
             var receptionistDto = _mapper.Map<ReceptionistDto>(receptionist);
+            var accountDto = new AccountUpdatePhonePhotoDto(receptionist.Account.Id, receptionist.Account.PhoneNumber, photoId);
+
             await _rabbitMQService.PublishMessageAsync(receptionistDto, RabbitMQQueues.ADD_RECEPTIONIST_QUEUE);
+            await _rabbitMQService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE);
         }
 
         public async Task<IEnumerable<ReceptionistEntity>> GetAllReceptionistsAsync()
@@ -77,19 +82,18 @@ namespace InnoClinic.Profiles.Application.Services
             return await _receptionistRepository.GetByAccountId(accountId);
         }
 
-        public async Task UpdateReceptionistAsync(Guid id, string firstName, string lastName, string middleName, string status, Guid officeId)
+        public async Task UpdateReceptionistAsync(Guid id, string firstName, string lastName, string middleName, string status, Guid officeId, string photoId)
         {
+            var receptionist = await _receptionistRepository.GetByIdAsync(id);
             var office = await _officeRepository.GetByIdAsync(officeId);
 
-            var receptionist = new ReceptionistEntity
-            {
-                Id = id,
-                FirstName = firstName,
-                LastName = lastName,
-                MiddleName = middleName,
-                Status = status,
-                Office = office
-            };
+            receptionist.Id = id;
+            receptionist.FirstName = firstName;
+            receptionist.LastName = lastName;
+            receptionist.MiddleName = middleName;
+            receptionist.Status = status;
+            receptionist.Office = office;
+            receptionist.Account.PhotoId = photoId;
 
             var validationErrors = _validationService.Validation(receptionist);
 
@@ -101,7 +105,10 @@ namespace InnoClinic.Profiles.Application.Services
             await _receptionistRepository.UpdateAsync(receptionist);
 
             var receptionistDto = _mapper.Map<ReceptionistDto>(receptionist);
+            var accountDto = new AccountUpdatePhonePhotoDto(receptionist.Account.Id, receptionist.Account.PhoneNumber, photoId);
+
             await _rabbitMQService.PublishMessageAsync(receptionistDto, RabbitMQQueues.UPDATE_RECEPTIONIST_QUEUE);
+            await _rabbitMQService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE);
         }
 
         public async Task DeleteReceptionistAsync(Guid id)

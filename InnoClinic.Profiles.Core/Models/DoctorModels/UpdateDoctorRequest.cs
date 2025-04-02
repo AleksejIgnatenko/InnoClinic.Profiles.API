@@ -9,6 +9,7 @@
         Guid SpecializationId,
         Guid OfficeId,
         string CareerStartYear,
-        string Status
+        string Status,
+        string PhotoId
         );
 }

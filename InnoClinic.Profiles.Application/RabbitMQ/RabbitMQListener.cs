@@ -65,19 +65,19 @@ namespace InnoClinic.Profiles.Application.RabbitMQ
             };
             _channel.BasicConsume(RabbitMQQueues.ADD_ACCOUNT_QUEUE, false, addAccountConsumer);
 
-            var updateAccountConsumer = new EventingBasicConsumer(_channel);
-            updateAccountConsumer.Received += async (ch, ea) =>
-            {
-                var content = Encoding.UTF8.GetString(ea.Body.ToArray());
+            //var updateAccountConsumer = new EventingBasicConsumer(_channel);
+            //updateAccountConsumer.Received += async (ch, ea) =>
+            //{
+            //    var content = Encoding.UTF8.GetString(ea.Body.ToArray());
 
-                var accountDto = JsonConvert.DeserializeObject<AccountDto>(content);
-                var account = _mapper.Map<AccountEntity>(accountDto);
+            //    var accountDto = JsonConvert.DeserializeObject<AccountDto>(content);
+            //    var account = _mapper.Map<AccountEntity>(accountDto);
 
-                await _accountRepository.UpdateAsync(account);
+            //    await _accountRepository.UpdateAsync(account);
 
-                _channel.BasicAck(ea.DeliveryTag, false);
-            };
-            _channel.BasicConsume(RabbitMQQueues.UPDATE_ACCOUNT_QUEUE, false, updateAccountConsumer);
+            //    _channel.BasicAck(ea.DeliveryTag, false);
+            //};
+            //_channel.BasicConsume(RabbitMQQueues.UPDATE_ACCOUNT_QUEUE, false, updateAccountConsumer);
 
             var deleteAccountConsumer = new EventingBasicConsumer(_channel);
             deleteAccountConsumer.Received += async (ch, ea) =>

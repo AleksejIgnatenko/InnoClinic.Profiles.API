@@ -10,6 +10,6 @@ namespace InnoClinic.Profiles.Core.Models.PatientModels
         public string MiddleName { get; set; } = string.Empty;
         public bool IsLinkedToAccount { get; set; }
         public string DateOfBirth { get; set; } = string.Empty;
-        public AccountEntity Account { get; set; } = new AccountEntity();
+        public AccountEntity? Account { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using InnoClinic.Profiles.Core.Abstractions;
 using InnoClinic.Profiles.Core.Exceptions;
+using InnoClinic.Profiles.Core.Models.AccountModels;
 using InnoClinic.Profiles.Core.Models.DoctorModels;
 using InnoClinic.Profiles.DataAccess.Repositories;
 using InnoClinic.Profiles.Infrastructure.RabbitMQ;
@@ -33,9 +34,9 @@ namespace InnoClinic.Profiles.Application.Services
         }
 
         public async Task CreateDoctorAsync(string firstName, string lastName, string middleName, int cabinetNumber,
-            string dateOfBirth, string email, Guid specializationId, Guid officeId, string careerStartYear, string status)
+            string dateOfBirth, string email, Guid specializationId, Guid officeId, string careerStartYear, string status, string? photoId)
         {
-            var accountId = await _accountService.CreateAccountAsync(email, firstName + " " + lastName, Core.Enums.RoleEnum.Doctor);
+            var accountId = await _accountService.CreateAccountAsync(email, firstName + " " + lastName, Core.Enums.RoleEnum.Doctor, photoId);
 
             var specialization = await _specializationRepository.GetByIdAsync(specializationId);
             var office = await _officeRepository.GetByIdAsync(officeId);
@@ -53,7 +54,7 @@ namespace InnoClinic.Profiles.Application.Services
                 Specialization = specialization,
                 Office = office,
                 CareerStartYear = careerStartYear,
-                Status = status
+                Status = status,
             };
 
             var validationErrors = _validationService.Validation(doctor);
@@ -66,7 +67,10 @@ namespace InnoClinic.Profiles.Application.Services
             await _doctorRepository.CreateAsync(doctor);
 
             var doctorDto = _mapper.Map<DoctorDto>(doctor);
-            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.ADD_DOCTOR_QUEUE);
+            var accountDto = new AccountUpdatePhonePhotoDto(doctor.Account.Id, doctor.Account.PhoneNumber, photoId);
+
+            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.ADD_DOCTOR_IN_APPOINTMENTS_QUEUE);
+            await _rabbitmqService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE);
         }
 
         public async Task<IEnumerable<DoctorEntity>> GetAllDoctorsAsync()
@@ -91,24 +95,22 @@ namespace InnoClinic.Profiles.Application.Services
         }
 
         public async Task UpdateDoctorAsync(Guid id, string firstName, string lastName, string middleName, int cabinetNumber,
-            string dateOfBirth, Guid specializationId, Guid officeId, string careerStartYear, string status)
+            string dateOfBirth, Guid specializationId, Guid officeId, string careerStartYear, string status, string? photoId)
         {
+            var doctor = await _doctorRepository.GetByIdAsync(id);
             var specialization = await _specializationRepository.GetByIdAsync(specializationId);
             var office = await _officeRepository.GetByIdAsync(officeId);
 
-            var doctor = new DoctorEntity
-            {
-                Id = id,
-                FirstName = firstName,
-                LastName = lastName,
-                MiddleName = middleName,
-                CabinetNumber = cabinetNumber,
-                DateOfBirth = dateOfBirth,
-                Specialization = specialization,
-                Office = office,
-                CareerStartYear = careerStartYear,
-                Status = status
-            };
+            doctor.FirstName = firstName;
+            doctor.LastName = lastName;
+            doctor.MiddleName = middleName;
+            doctor.CabinetNumber = cabinetNumber;
+            doctor.DateOfBirth = dateOfBirth;
+            doctor.Specialization = specialization;
+            doctor.Office = office;
+            doctor.CareerStartYear = careerStartYear;
+            doctor.Status = status;
+            doctor.Account.PhotoId = photoId;
 
             var validationErrors = _validationService.Validation(doctor);
 
@@ -120,7 +122,10 @@ namespace InnoClinic.Profiles.Application.Services
             await _doctorRepository.UpdateAsync(doctor);
 
             var doctorDto = _mapper.Map<DoctorDto>(doctor);
-            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.UPDATE_DOCTOR_QUEUE);
+            var accountDto = new AccountUpdatePhonePhotoDto(doctor.Account.Id, doctor.Account.PhoneNumber, photoId);
+
+            await _rabbitmqService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE);
+            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.UPDATE_DOCTOR_IN_APPOINTMENTS_QUEUE);
         }
 
         public async Task DeleteDoctorAsync(Guid id)
@@ -129,7 +134,7 @@ namespace InnoClinic.Profiles.Application.Services
             await _doctorRepository.DeleteAsync(doctor);
 
             var doctorDto = _mapper.Map<DoctorDto>(doctor);
-            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.DELETE_DOCTOR_QUEUE);
+            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.DELETE_DOCTOR_IN_APPOINTMENTS_QUEUE);
         }
     }
 }

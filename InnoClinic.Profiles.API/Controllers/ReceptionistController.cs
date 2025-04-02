@@ -1,5 +1,6 @@
 ﻿using InnoClinic.Profiles.Application.Services;
 using InnoClinic.Profiles.Core.Models.ReceptionistModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace InnoClinic.Profiles.API.Controllers
@@ -16,10 +17,10 @@ namespace InnoClinic.Profiles.API.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> CreateReceptionistAsync(CreateReceptionistRequest receptionistRequest)
+        public async Task<ActionResult> CreateReceptionistAsync([FromBody] CreateReceptionistRequest receptionistRequest)
         {
             await _receptionistService.CreateReceptionistAsync(receptionistRequest.FirstName, receptionistRequest.LastName,
-                receptionistRequest.MiddleName, receptionistRequest.Email, receptionistRequest.Status, receptionistRequest.OfficeId);
+                receptionistRequest.MiddleName, receptionistRequest.Email, receptionistRequest.Status, receptionistRequest.OfficeId, receptionistRequest.PhotoId);
 
             return Ok();
         }
@@ -36,6 +37,7 @@ namespace InnoClinic.Profiles.API.Controllers
             return Ok(await _receptionistService.GetReceptionistByIdAsync(id));
         }
 
+        [Authorize]
         [HttpGet("receptionist-by-account-id-from-token")]
         public async Task<ActionResult> GetReceptionistByAccountIdFromTokenAsync()
         {
@@ -48,7 +50,7 @@ namespace InnoClinic.Profiles.API.Controllers
         public async Task<ActionResult> UpdateReceptionistAsync(Guid id, UpdateReceptionistRequest updateReceptionist)
         {
             await _receptionistService.UpdateReceptionistAsync(id, updateReceptionist.FirstName, updateReceptionist.LastName,
-                updateReceptionist.MiddleName, updateReceptionist.Status, updateReceptionist.OfficeId); 
+                updateReceptionist.MiddleName, updateReceptionist.Status, updateReceptionist.OfficeId, updateReceptionist.PhotoId); 
 
             return Ok();
         }

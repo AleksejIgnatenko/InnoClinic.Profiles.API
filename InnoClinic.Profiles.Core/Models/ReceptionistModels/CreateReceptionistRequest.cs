@@ -6,6 +6,7 @@
             string MiddleName,
             string Email,
             string Status,
-            Guid OfficeId
+            Guid OfficeId,
+            string PhotoId
             );
 }

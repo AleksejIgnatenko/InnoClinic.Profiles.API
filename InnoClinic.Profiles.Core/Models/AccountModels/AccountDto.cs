@@ -12,6 +12,8 @@ namespace InnoClinic.Profiles.Core.Models.AccountModels
         /// </summary>
         public Guid Id { get; set; }
 
+        public string PhotoId { get; set; } = string.Empty;
+
         /// <summary>
         /// Gets or sets the email associated with the account.
         /// </summary>

@@ -3,6 +3,7 @@ using InnoClinic.Profiles.Core.Abstractions;
 using InnoClinic.Profiles.Core.Enums;
 using InnoClinic.Profiles.Core.Models.AccountModels;
 using InnoClinic.Profiles.Infrastructure.RabbitMQ;
+using Newtonsoft.Json;
 
 namespace InnoClinic.Profiles.Application.Services
 {
@@ -23,13 +24,14 @@ namespace InnoClinic.Profiles.Application.Services
             _emailService = emailService;
         }
 
-        public async Task<Guid> CreateAccountAsync(string email, string fullName, RoleEnum role)
+        public async Task<Guid> CreateAccountAsync(string email, string fullName, RoleEnum role, string? photoId)
         {
             var password = _passwordService.GeneratePassword();
 
             var account = new AccountEntity
             {
                 Id = Guid.NewGuid(),
+                PhotoId = photoId,
                 Email = email,
                 Password = password,
                 Role = role
@@ -42,6 +44,7 @@ namespace InnoClinic.Profiles.Application.Services
             await _accountRepository.CreateAsync(account);
 
             var accountDto = _mapper.Map<AccountDto>(account);
+
             await _rabbitmqService.PublishMessageAsync(accountDto, RabbitMQQueues.ADD_ACCOUNT_IN_PROFILE_API_QUEUE);
 
             return account.Id;

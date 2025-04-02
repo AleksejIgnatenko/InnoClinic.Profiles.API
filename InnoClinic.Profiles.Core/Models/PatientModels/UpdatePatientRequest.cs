@@ -7,6 +7,6 @@
             string PhoneNumber,
             bool IsLinkedToAccount,
             string DateOfBirth,
-            Guid AccountId
+            string? PhotoId
             );
 }

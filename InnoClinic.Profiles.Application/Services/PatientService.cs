@@ -27,11 +27,31 @@ namespace InnoClinic.Profiles.Application.Services
             _jwtTokenService = jwtTokenService;
         }
 
+        public async Task CreatePatientAsync(string firstName, string lastName, string middleName, string dateOfBirth)
+        {
+            var patient = new PatientEntity
+            {
+                Id = Guid.NewGuid(),
+                FirstName = firstName,
+                LastName = lastName,
+                MiddleName = middleName,
+                IsLinkedToAccount = false,
+                DateOfBirth = dateOfBirth,
+            };
+
+            await _patientRepository.CreateAsync(patient);
+
+            var patientDto = _mapper.Map<PatientDto>(patient);
+
+            await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.ADD_PATIENT_IN_APPOINTMENTS_QUEUE);
+        }
+
         public async Task CreatePatientAsync(string firstName, string lastName, string middleName, string phoneNumber,
-            bool isLinkedToAccount, string dateOfBirth, string token)
+            bool isLinkedToAccount, string dateOfBirth, string? photoId, string token)
         {
             var accountId = _jwtTokenService.GetAccountIdFromAccessToken(token);
             var account = await _accountRepository.GetByIdAsync(accountId);
+            account.PhotoId = photoId;
             account.PhoneNumber = phoneNumber;
 
             var patient = new PatientEntity
@@ -67,18 +87,20 @@ namespace InnoClinic.Profiles.Application.Services
             await _patientRepository.CreateAsync(patient);
 
             var patientDto = _mapper.Map<PatientDto>(patient);
-            await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.ADD_PATIENT_QUEUE);
+            var accountDto = new AccountUpdatePhonePhotoDto(accountId, phoneNumber, photoId);
 
-            var accountDto = _mapper.Map<AccountDto>(account);
-            await _rabbitMQService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_PHONE_QUEUE);
+            await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.ADD_PATIENT_IN_APPOINTMENTS_QUEUE);
+            await _rabbitMQService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE);
+
         }
 
         public async Task ForceCreatePatientAsync(string firstName, string lastName, string middleName, string phoneNumber,
-            bool isLinkedToAccount, string dateOfBirth, string token)
+            bool isLinkedToAccount, string dateOfBirth, string? photoId, string token)
         {
             var accountId = _jwtTokenService.GetAccountIdFromAccessToken(token);
             var account = await _accountRepository.GetByIdAsync(accountId);
             account.PhoneNumber = phoneNumber;
+            account.PhotoId = photoId;
 
             var patient = new PatientEntity
             {
@@ -106,10 +128,11 @@ namespace InnoClinic.Profiles.Application.Services
             await _patientRepository.CreateAsync(patient);
 
             var patientDto = _mapper.Map<PatientDto>(patient);
-            await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.ADD_PATIENT_QUEUE);
+            var accountDto = new AccountUpdatePhonePhotoDto(accountId, phoneNumber, photoId);
 
-            var accountDto = _mapper.Map<AccountDto>(account);
-            await _rabbitMQService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_QUEUE);
+            await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.ADD_PATIENT_IN_AUTHORIZATION_API_QUEUE);
+            await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.ADD_PATIENT_IN_APPOINTMENTS_QUEUE);
+            await _rabbitMQService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE);
         }
 
         public async Task<IEnumerable<PatientEntity>> GetAllPatientsAsync()
@@ -129,20 +152,15 @@ namespace InnoClinic.Profiles.Application.Services
         }
 
         public async Task UpdatePatientAsync(Guid id, string firstName, string lastName, string middleName, bool isLinkedToAccount,
-            string dateOfBirth, Guid accountId)
+            string dateOfBirth, string? photoId)
         {
-            var account = await _accountRepository.GetByIdAsync(accountId);
-
-            var patient = new PatientEntity
-            {
-                Id = id,
-                FirstName = firstName,
-                LastName = lastName,
-                MiddleName = middleName,
-                IsLinkedToAccount = isLinkedToAccount,
-                DateOfBirth = dateOfBirth,
-                Account = account
-            };
+            var patient = await _patientRepository.GetByIdAsync(id);
+            patient.FirstName = firstName;
+            patient.LastName = lastName;
+            patient.MiddleName = middleName;
+            patient.IsLinkedToAccount = isLinkedToAccount;
+            patient.DateOfBirth = dateOfBirth;
+            patient.Account.PhotoId = photoId;
 
             var validationErrors = _validationService.Validation(patient);
 
@@ -154,7 +172,11 @@ namespace InnoClinic.Profiles.Application.Services
             await _patientRepository.UpdateAsync(patient);
 
             var patientDto = _mapper.Map<PatientDto>(patient);
-            await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.UPDATE_PATIENT_QUEUE);
+
+            var accountDto = new AccountUpdatePhonePhotoDto(patient.Account.Id, patient.Account.PhoneNumber, photoId);
+
+            await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.UPDATE_PATIEN_IN_APPOINTMENTST_QUEUE);
+            await _rabbitMQService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE);
         }
 
         public async Task AccountConnectionWithThePatient(string token, Guid patientId)
@@ -176,7 +198,7 @@ namespace InnoClinic.Profiles.Application.Services
             await _patientRepository.DeleteAsync(patient);
 
             var patientDto = _mapper.Map<PatientDto>(patient);
-            await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.DELETE_PATIENT_QUEUE);
+            await _rabbitMQService.PublishMessageAsync(patientDto, RabbitMQQueues.DELETE_PATIENT_IN_APPOINTMENTS_QUEUE);
         }
     }
 }
