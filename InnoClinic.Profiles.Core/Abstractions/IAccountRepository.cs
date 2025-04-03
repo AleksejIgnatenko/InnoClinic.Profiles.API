@@ -1,9 +1,9 @@
-﻿using InnoClinic.Profiles.Core.Models;
+﻿using InnoClinic.Profiles.Core.Models.AccountModels;
 
 namespace InnoClinic.Profiles.Core.Abstractions
 {
-    public interface IAccountRepository : IRepositoryBase<AccountModel>
+    public interface IAccountRepository : IRepositoryBase<AccountEntity>
     {
-        Task<AccountModel> GetByIdAsync(Guid id);
+        Task<AccountEntity> GetByIdAsync(Guid id);
     }
 }

@@ -1,15 +1,15 @@
 ﻿using FluentValidation;
-using InnoClinic.Profiles.Core.Models;
+using InnoClinic.Profiles.Core.Models.AccountModels;
 
 namespace InnoClinic.Profiles.Application.Validators
 {
-    internal class AccountValidator : AbstractValidator<AccountModel>
+    internal class AccountValidator : AbstractValidator<AccountEntity>
     {
         public AccountValidator()
         {
             RuleFor(x => x.PhoneNumber)
-               .NotEmpty().WithMessage("Пожалуйста, введите номер телефона")
-               .Matches(@"^\+375\(\d{2}\)\d{3}-\d{2}-\d{2}$").WithMessage("Номер телефона должен соответствовать формату +375(XX)XXX-XX-XX");
+                .NotEmpty().WithMessage("Пожалуйста, введите номер телефона")
+                .Matches(@"^\+").WithMessage("Номер телефона должен начинаться с символа +");
         }
     }
 }

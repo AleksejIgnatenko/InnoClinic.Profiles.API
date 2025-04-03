@@ -1,4 +1,4 @@
-﻿namespace InnoClinic.Profiles.Core.Dto
+﻿namespace InnoClinic.Profiles.Core.Models.PatientModels
 {
     public class PatientDto
     {
@@ -6,5 +6,6 @@
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string MiddleName { get; set; } = string.Empty;
+        public Guid AccountId { get; set; } 
     }
 }

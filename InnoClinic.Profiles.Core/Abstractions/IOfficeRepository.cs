@@ -1,9 +1,9 @@
-﻿using InnoClinic.Profiles.Core.Models;
+﻿using InnoClinic.Profiles.Core.Models.OfficeModels;
 
 namespace InnoClinic.Profiles.Core.Abstractions
 {
-    public interface IOfficeRepository : IRepositoryBase<OfficeModel>
+    public interface IOfficeRepository : IRepositoryBase<OfficeEntity>
     {
-        Task<OfficeModel> GetByIdAsync(Guid id);
+        Task<OfficeEntity> GetByIdAsync(Guid id);
     }
 }

@@ -1,11 +1,12 @@
-﻿namespace InnoClinic.Profiles.Core.Dto
+﻿namespace InnoClinic.Profiles.Core.Models.ReceptionistModels
 {
-    public class DoctorDto
+    public class ReceptionistDto
     {
         public Guid Id { get; set; }
+        public Guid AccountId { get; set; }
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
         public string MiddleName { get; set; } = string.Empty;
-        public int CabinetNumber { get; set; }
+        public string Status { get; set; } = string.Empty;
     }
 }
