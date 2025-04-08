@@ -49,6 +49,7 @@ builder.Services.AddScoped<IReceptionistRepository, ReceptionistRepository>();
 
 builder.Services.AddScoped<ISpecializationRepository, SpecializationRepository>();
 
+builder.Services.AddScoped<IEncryptionService, EncryptionService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPasswordService, PasswordService>();
@@ -60,6 +61,8 @@ builder.Services.AddHostedService<RabbitMQListener>();
 builder.Services.AddAutoMapper(typeof(AccountMappingProfile), typeof(OfficeMappingProfile), typeof(SpecializationMappingProfile), typeof(DoctorMappingProfile), typeof(PatientMappingProfile));
 
 var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -83,8 +86,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.UseMiddleware<ExceptionHandlerMiddleware>();
 
 app.UseCors(x =>
 {

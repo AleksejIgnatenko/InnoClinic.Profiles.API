@@ -7,9 +7,13 @@ namespace InnoClinic.Profiles.Application.Validators
     {
         public AccountValidator()
         {
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Пожалуйста, введите email")
+                .EmailAddress().WithMessage("Вы ввели неверный email");
+
             RuleFor(x => x.PhoneNumber)
-                .NotEmpty().WithMessage("Пожалуйста, введите номер телефона")
-                .Matches(@"^\+").WithMessage("Номер телефона должен начинаться с символа +");
+                .Matches(@"^\+").WithMessage("Номер телефона должен начинаться с символа +")
+                .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
         }
     }
 }

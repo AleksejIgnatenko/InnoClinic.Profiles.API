@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InnoClinic.Profiles.API.Controllers
 {
+    //[Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class DoctorController : ControllerBase
@@ -26,31 +27,41 @@ namespace InnoClinic.Profiles.API.Controllers
             return Ok();
         }
 
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult> GetAllDoctorsAsync()
         {
             return Ok(await _doctorService.GetAllDoctorsAsync());
         }
 
+        [AllowAnonymous]
         [HttpGet("{id:guid}")]
         public async Task<ActionResult> GetDoctorByIdAsync(Guid id)
         {
             return Ok(await _doctorService.GetDoctorByIdAsync(id));
         }
 
+        [AllowAnonymous]
         [HttpGet("at-work")]
         public async Task<ActionResult> GetAllDoctorsAtWorkAsync()
         {
             return Ok(await _doctorService.GetAllDoctorsAtWorkAsync());
         }
 
-        [Authorize]
         [HttpGet("doctor-by-account-id-from-token")]
         public async Task<ActionResult> GetDoctorByAccountIdFromTokenAsync()
         {
             var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
             return Ok(await _doctorService.GetDoctorByAccountIdFromTokenAsync(token));
+        }
+
+        [AllowAnonymous]
+        [HttpGet("status-by-account-id/{accountId:guid}")]
+        public async Task<ActionResult> GetDoctorStatusByAccountIdAsync(Guid accountId)
+        {
+            var account = await _doctorService.GetDoctorByAccountIdAsync(accountId);
+            return Ok(account.Status);
         }
 
         [HttpPut("{id:guid}")]

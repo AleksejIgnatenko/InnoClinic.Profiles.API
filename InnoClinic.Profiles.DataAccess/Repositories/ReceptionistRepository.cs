@@ -33,6 +33,8 @@ namespace InnoClinic.Profiles.DataAccess.Repositories
         public async Task<ReceptionistEntity> GetByAccountId(Guid accountId)
         {
             return await _context.Receptionists
+                .Include(r => r.Account)
+                .Include(r => r.Office)
                 .FirstOrDefaultAsync(r => r.Account.Id == accountId)
                 ?? throw new DataRepositoryException($"Receptionist with accountId '{accountId}' not found.", StatusCodes.Status404NotFound);
         }
