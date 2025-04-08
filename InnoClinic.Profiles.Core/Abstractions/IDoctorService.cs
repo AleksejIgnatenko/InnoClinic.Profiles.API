@@ -11,5 +11,6 @@ namespace InnoClinic.Profiles.Application.Services
         Task DeleteDoctorAsync(Guid id);
         Task<DoctorEntity> GetDoctorByIdAsync(Guid id);
         Task<DoctorEntity> GetDoctorByAccountIdFromTokenAsync(string token);
+        Task<DoctorEntity> GetDoctorByAccountIdAsync(Guid accountId);
     }
 }

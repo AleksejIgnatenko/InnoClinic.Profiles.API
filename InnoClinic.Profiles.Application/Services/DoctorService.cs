@@ -69,7 +69,7 @@ namespace InnoClinic.Profiles.Application.Services
             var doctorDto = _mapper.Map<DoctorDto>(doctor);
             var accountDto = new AccountUpdatePhonePhotoDto(doctor.Account.Id, doctor.Account.PhoneNumber, photoId);
 
-            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.ADD_DOCTOR_IN_APPOINTMENTS_QUEUE);
+            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.ADD_DOCTOR_QUEUE);
             await _rabbitmqService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE);
         }
 
@@ -91,6 +91,11 @@ namespace InnoClinic.Profiles.Application.Services
         public async Task<DoctorEntity> GetDoctorByAccountIdFromTokenAsync(string token)
         {
             var accountId = _jwtTokenService.GetAccountIdFromAccessToken(token);
+            return await _doctorRepository.GetByAccountId(accountId);
+        }
+
+        public async Task<DoctorEntity> GetDoctorByAccountIdAsync(Guid accountId)
+        {
             return await _doctorRepository.GetByAccountId(accountId);
         }
 
@@ -124,8 +129,8 @@ namespace InnoClinic.Profiles.Application.Services
             var doctorDto = _mapper.Map<DoctorDto>(doctor);
             var accountDto = new AccountUpdatePhonePhotoDto(doctor.Account.Id, doctor.Account.PhoneNumber, photoId);
 
+            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.UPDATE_DOCTOR_QUEUE);
             await _rabbitmqService.PublishMessageAsync(accountDto, RabbitMQQueues.UPDATE_ACCOUNT_PHONE_PHOTO_QUEUE);
-            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.UPDATE_DOCTOR_IN_APPOINTMENTS_QUEUE);
         }
 
         public async Task DeleteDoctorAsync(Guid id)
@@ -134,7 +139,7 @@ namespace InnoClinic.Profiles.Application.Services
             await _doctorRepository.DeleteAsync(doctor);
 
             var doctorDto = _mapper.Map<DoctorDto>(doctor);
-            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.DELETE_DOCTOR_IN_APPOINTMENTS_QUEUE);
+            await _rabbitmqService.PublishMessageAsync(doctorDto, RabbitMQQueues.DELETE_DOCTOR_QUEUE);
         }
     }
 }

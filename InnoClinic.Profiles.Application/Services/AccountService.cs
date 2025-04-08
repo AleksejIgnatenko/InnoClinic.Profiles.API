@@ -3,7 +3,7 @@ using InnoClinic.Profiles.Core.Abstractions;
 using InnoClinic.Profiles.Core.Enums;
 using InnoClinic.Profiles.Core.Models.AccountModels;
 using InnoClinic.Profiles.Infrastructure.RabbitMQ;
-using Newtonsoft.Json;
+using InnoClinic.Profiles.Core.Exceptions;
 
 namespace InnoClinic.Profiles.Application.Services
 {
@@ -14,14 +14,16 @@ namespace InnoClinic.Profiles.Application.Services
         private readonly IRabbitMQService _rabbitmqService;
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
+        private readonly IValidationService _validationService;
 
-        public AccountService(IPasswordService passwordService, IAccountRepository accountRepository, IRabbitMQService rabbitmqService, IMapper mapper, IEmailService emailService)
+        public AccountService(IPasswordService passwordService, IAccountRepository accountRepository, IRabbitMQService rabbitmqService, IMapper mapper, IEmailService emailService, IValidationService validationService)
         {
             _passwordService = passwordService;
             _accountRepository = accountRepository;
             _rabbitmqService = rabbitmqService;
             _mapper = mapper;
             _emailService = emailService;
+            _validationService = validationService;
         }
 
         public async Task<Guid> CreateAccountAsync(string email, string fullName, RoleEnum role, string? photoId)
@@ -36,6 +38,13 @@ namespace InnoClinic.Profiles.Application.Services
                 Password = password,
                 Role = role
             };
+
+            var validationErrors = _validationService.Validation(account);
+
+            if (validationErrors.Count != 0)
+            {
+                throw new ValidationException(validationErrors);
+            }
 
             await _emailService.SendEmailAsync(account, fullName);
 

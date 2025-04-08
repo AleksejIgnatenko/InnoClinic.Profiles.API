@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InnoClinic.Profiles.API.Controllers
 {
+    //[Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class PatientController : ControllerBase
@@ -16,16 +17,17 @@ namespace InnoClinic.Profiles.API.Controllers
             _patientService = patientService;
         }
 
+        [Authorize(Roles = "Receptionist")]
         [HttpPost("create")]
-        public async Task<ActionResult> CreateAdminPatientAsync([FromBody] CreatePatientRequest createPatientRequest)
+        public async Task<ActionResult> CreateAdminPatientAsync([FromBody] CreateAdminPatientRequest createAdminPatientRequest)
         {
-            await _patientService.CreatePatientAsync(createPatientRequest.FirstName, createPatientRequest.LastName,
-                createPatientRequest.MiddleName, createPatientRequest.DateOfBirth);
+            await _patientService.CreatePatientAsync(createAdminPatientRequest.FirstName, createAdminPatientRequest.LastName,
+                createAdminPatientRequest.MiddleName, createAdminPatientRequest.DateOfBirth);
 
             return Ok();
         }
 
-        [Authorize]
+        [AllowAnonymous]
         [HttpPost]
         public async Task<ActionResult> CreatePatientAsync([FromBody] CreatePatientRequest createPatientRequest)
         {
@@ -37,7 +39,6 @@ namespace InnoClinic.Profiles.API.Controllers
             return Ok();
         }
 
-        [Authorize]
         [HttpPost("force-create-patient")]
         public async Task<ActionResult> ForceCreatePatientAsync([FromBody] CreatePatientRequest createPatientRequest)
         {
@@ -55,7 +56,6 @@ namespace InnoClinic.Profiles.API.Controllers
             return Ok(await _patientService.GetAllPatientsAsync());
         }
 
-        //[Authorize]
         [HttpGet("{id:guid}")]
         public async Task<ActionResult> GetPatientByIdAsync(Guid id)
         {
@@ -67,7 +67,6 @@ namespace InnoClinic.Profiles.API.Controllers
             return Ok(patient);
         }
 
-        [Authorize]
         [HttpGet("patient-by-account-id-from-token")]
         public async Task<ActionResult> GetPatientByAccountIdFromTokenAsync()
         {
@@ -79,12 +78,11 @@ namespace InnoClinic.Profiles.API.Controllers
         public async Task<ActionResult> UpdatePatientAsync(Guid id, [FromBody] UpdatePatientRequest updatePatientRequest)
         {
             await _patientService.UpdatePatientAsync(id, updatePatientRequest.FirstName, updatePatientRequest.LastName,
-                updatePatientRequest.MiddleName, updatePatientRequest.IsLinkedToAccount, updatePatientRequest.DateOfBirth, updatePatientRequest.PhotoId);
+                updatePatientRequest.MiddleName, updatePatientRequest.PhoneNumber, updatePatientRequest.IsLinkedToAccount,  updatePatientRequest.DateOfBirth, updatePatientRequest.PhotoId);
 
             return Ok();
         }
 
-        [Authorize]
         [HttpPut("account-connection-with-the-patient/{id:guid}")]
         public async Task<ActionResult> AccountConnectionWithThePatientAsync(Guid id)
         {

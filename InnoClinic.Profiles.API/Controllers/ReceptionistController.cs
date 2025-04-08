@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace InnoClinic.Profiles.API.Controllers
 {
+    //[Authorize(Roles = "Receptionist")]
     [ApiController]
     [Route("api/[controller]")]
     public class ReceptionistController : ControllerBase
@@ -37,13 +38,19 @@ namespace InnoClinic.Profiles.API.Controllers
             return Ok(await _receptionistService.GetReceptionistByIdAsync(id));
         }
 
-        [Authorize]
         [HttpGet("receptionist-by-account-id-from-token")]
         public async Task<ActionResult> GetReceptionistByAccountIdFromTokenAsync()
         {
             var token = HttpContext.Request.Headers["Authorization"].ToString().Replace("Bearer ", "");
 
             return Ok(await _receptionistService.GetReceptionistByAccountIdFromTokenAsync(token));
+        }
+
+        [HttpGet("status-by-account-id/{accountId:guid}")]
+        public async Task<ActionResult> GetReceptionistStatusByAccountIdAsync(Guid accountId)
+        {
+            var account = await _receptionistService.GetReceptionistByIdAsync(accountId);
+            return Ok(account.Status);
         }
 
         [HttpPut("{id:guid}")]
